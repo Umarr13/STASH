@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStorage } from '../hooks/useStorage';
+import { useGlobalToast } from '../App';
 import { X } from 'lucide-react';
 
 export function Capture() {
   const navigate = useNavigate();
   const { addIdea } = useStorage();
+  const showToast = useGlobalToast();
   
   const [type, setType] = useState('novel');
   const [charName, setCharName] = useState('');
@@ -33,6 +35,7 @@ export function Capture() {
       tags
     });
     
+    showToast?.('Idea stashed!', 'success');
     navigate(-1);
   };
 
@@ -50,29 +53,13 @@ export function Capture() {
         <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
           <button
             onClick={() => setType('novel')}
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: 8,
-              backgroundColor: type === 'novel' ? 'var(--surface2)' : 'transparent',
-              border: `1px solid ${type === 'novel' ? 'var(--amber)' : 'var(--border)'}`,
-              color: type === 'novel' ? 'var(--amber)' : 'var(--sub)',
-              fontWeight: 600
-            }}
+            className={`type-toggle ${type === 'novel' ? 'type-toggle-active-novel' : ''}`}
           >
             Novel Idea
           </button>
           <button
             onClick={() => setType('character')}
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: 8,
-              backgroundColor: type === 'character' ? 'var(--surface2)' : 'transparent',
-              border: `1px solid ${type === 'character' ? 'var(--char-purple)' : 'var(--border)'}`,
-              color: type === 'character' ? 'var(--char-purple)' : 'var(--sub)',
-              fontWeight: 600
-            }}
+            className={`type-toggle ${type === 'character' ? 'type-toggle-active-char' : ''}`}
           >
             Character
           </button>
@@ -115,24 +102,14 @@ export function Capture() {
           />
         </div>
         
-        <div style={{ marginTop: 16, color: 'var(--sub)', fontSize: 14, textAlign: 'right' }}>
+        <div style={{ marginTop: 16, color: 'var(--sub)', fontSize: 14, textAlign: 'right', fontFamily: "'JetBrains Mono', monospace" }}>
           {wordCount} words
         </div>
         
         <button 
           onClick={handleSave}
-          style={{ 
-            marginTop: 24,
-            marginBottom: 16,
-            width: '100%',
-            color: '#000', 
-            backgroundColor: 'var(--amber)',
-            padding: '16px',
-            borderRadius: 12,
-            fontWeight: 'bold',
-            fontSize: 18,
-            boxShadow: '0 4px 12px rgba(232, 168, 56, 0.3)'
-          }}
+          className="stash-btn"
+          disabled={!body.trim() && !charName.trim()}
         >
           Stash It
         </button>
