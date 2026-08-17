@@ -20,7 +20,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Vite App
         run: npm run build
@@ -38,34 +38,39 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Decode Keystore
-        env:
-          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
         run: |
-          echo $KEYSTORE_FILE | base64 --decode > android/app/keystore.jks
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > ${{ github.workspace }}/android/app/keystore.jks
+
+      - name: Make gradlew executable
+        run: chmod +x ./android/gradlew
 
       - name: Build Release APK
         working-directory: ./android
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          chmod +x ./gradlew
           ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file=keystore.jks \
-            -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
-            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
-            -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+            -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/keystore.jks \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
 
       - name: Get Version
         id: get_version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk stash-v${{ steps.get_version.outputs.version }}.apk || \
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk stash-v${{ steps.get_version.outputs.version }}.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
-          name: Release v${{ steps.get_version.outputs.version }}
-          files: android/app/build/outputs/apk/release/app-release.apk
+          name: Stash v${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
+          make_latest: true
+          files: stash-v${{ steps.get_version.outputs.version }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
