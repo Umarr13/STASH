@@ -1,0 +1,14 @@
+# 1. Add absolutely everything in the folder that hasn't been committed yet
+git add .
+
+# 2. Commit it all together
+git commit -m "chore: initial commit of Stash app"
+
+# 3. Rename the branch to 'main'
+git branch -M main
+
+# 4. Connect to your GitHub repository (if it says 'remote origin already exists', just ignore the error and move to step 5)
+git remote add origin https://github.com/Umarr13/STASH.git
+
+# 5. Push all the code to GitHub
+git push -u origin main
