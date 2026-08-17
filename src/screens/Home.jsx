@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStorage } from '../hooks/useStorage';
-import { useTheme } from '../theme';
+import { useTheme } from '../theme.jsx';
 import { Plus, Moon, Sun } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
